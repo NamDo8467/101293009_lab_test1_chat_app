@@ -1,67 +1,89 @@
-const { log } = require("console");
-const express = require("express");
-const app = express();
-const http = require("http");
-const cors = require("cors");
-const server = http.createServer(app);
-const router = require('./routes')
-const socketio = require("socket.io");
-const { addUser, getUser, removeUser, getUsersInRoom } = require("./users");
-
+const express = require("express")
+const app = express()
+const http = require("http")
+const cors = require("cors")
+const server = http.createServer(app)
+const userRoute = require("./routes/userRoute")
+const mongoose = require("mongoose")
+const socketio = require("socket.io")
+const { addUser, getUser, removeUser, getUsersInRoom } = require("./users")
+const URI = "mongodb+srv://namdo:namdo@cluster0.qftfl.mongodb.net/comp3133_lab_test1_chat_app?retryWrites=true&w=majority"
 const io = socketio(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-  },
-});
+	cors: {
+		origin: "*",
+		methods: ["GET", "POST"]
+	}
+})
 
-app.use(cors);
+app.use(cors())
 
-app.use(router)
-const PORT = process.env.PORT || 5500;
-io.on("connection", (socket) => {
-  console.log("New connection");
+app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
 
-  socket.on("joinRoom", ({ name, room }) => {
-    const user = addUser(socket.id, name, room);
+app.use("/user", userRoute)
 
-    socket.emit("message", { user: "admin", text: "Welcome to the chat" });
+// app.set("socketIo", server)
 
-    socket.broadcast.to(user.room).emit("message", {
-      user: "admin",
-      text: `${user.name} has joined the chat`,
-    });
+const PORT = process.env.PORT || 5000
+io.on("connection", socket => {
+	console.log("New connection")
 
-    io.emit("usersInRoom", {
-      room: user.room,
-      users: getUsersInRoom(user.room),
-    });
-    socket.join(user.room);
-  });
+	socket.on("joinRoom", ({ name, room }) => {
+		const user = addUser(socket.id, name, room)
 
-  socket.on("sendMessage", ({ message, name }) => {
-    const user = getUser(name);
+		socket.emit("message", { user: "admin", text: "Welcome to the chat" })
 
-    io.to(user.room).emit("message", { user: user.name, text: message });
-  });
+		socket.broadcast.to(user.room).emit("message", {
+			user: "admin",
+			text: `${user.name} has joined the chat`
+		})
 
-  socket.on("disconnect", () => {
-    const user = removeUser(socket.id);
+		io.emit("usersInRoom", {
+			room: user.room,
+			users: getUsersInRoom(user.room)
+		})
+		socket.join(user.room)
+	})
 
-    if (user) {
-      io.emit("message", {
-        user: "admin",
-        text: `${user.name} has left the chat`,
-      });
-    }
+	socket.on("sendMessage", ({ message, name }) => {
+		const user = getUser(name)
 
-    io.emit("usersInRoom", {
-      room: user.room,
-      users: getUsersInRoom(user.room),
-    });
-  });
-});
+		io.to(user.room).emit("message", { user: user.name, text: message })
+	})
 
-server.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
-});
+	socket.on("disconnect", () => {
+		const user = removeUser(socket.id)
+
+		if (user) {
+			io.emit("message", {
+				user: "admin",
+				text: `${user.name} has left the chat`
+			})
+		}
+
+		io.emit("usersInRoom", {
+			room: user.room,
+			users: getUsersInRoom(user.room)
+		})
+	})
+})
+
+mongoose.connect(
+	URI,
+	{
+		useNewUrlParser: true,
+		useUnifiedTopology: true
+	},
+	err => {
+		if (err) {
+			console.log(err)
+		}
+	}
+)
+
+app.listen(5500, () => {
+	console.log(`Server is up and running for login and signup 5500`)
+})
+// server.listen(PORT, () => {
+// 	console.log(`Listening on port ${PORT}`)
+// })
