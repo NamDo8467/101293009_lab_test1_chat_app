@@ -4,6 +4,7 @@ const http = require("http")
 const cors = require("cors")
 const server = http.createServer(app)
 const userRoute = require("./routes/userRoute")
+const chatRoute = require("./routes/chatRoute")
 const mongoose = require("mongoose")
 const socketio = require("socket.io")
 const { addUser, getUser, removeUser, getUsersInRoom } = require("./users")
@@ -21,7 +22,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
 app.use("/user", userRoute)
-
+app.use("/chat", chatRoute)
 // app.set("socketIo", server)
 
 const PORT = process.env.PORT || 5000
@@ -32,7 +33,6 @@ io.on("connection", socket => {
 		const user = addUser(socket.id, name, room)
 
 		socket.emit("message", { user: "admin", text: "Welcome to the chat" })
-
 		socket.broadcast.to(user.room).emit("message", {
 			user: "admin",
 			text: `${user.name} has joined the chat`
@@ -48,7 +48,15 @@ io.on("connection", socket => {
 	socket.on("sendMessage", ({ message, name }) => {
 		const user = getUser(name)
 
-		io.to(user.room).emit("message", { user: user.name, text: message })
+		io.to(user.room).emit("message", { from: user.name, text: message })
+	})
+
+	socket.on("userTyping", ({ name, room }) => {
+		socket.broadcast.to(room).emit("typingIn", { text: `${name} is typing...` })
+	})
+
+	socket.on("userTypingOut", ({ room }) => {
+		socket.broadcast.to(room).emit("typingOut", { text: "No one" })
 	})
 
 	socket.on("disconnect", () => {
@@ -84,6 +92,6 @@ mongoose.connect(
 app.listen(5500, () => {
 	console.log(`Server is up and running for login and signup 5500`)
 })
-// server.listen(PORT, () => {
-// 	console.log(`Listening on port ${PORT}`)
-// })
+server.listen(PORT, () => {
+	console.log(`Listening on port ${PORT}`)
+})
