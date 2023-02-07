@@ -8,7 +8,7 @@ function Messages({ messages, name }) {
     <ScrollToBottom className="messagesContainer">
       {messages.map(message => {
         return (
-          <Message key={message.text} message={message.text} user={message.user} name={name} />
+          <Message key={message.text} message={message.text} user={message.from} name={name} />
         );
       })}
     </ScrollToBottom>
