@@ -4,9 +4,18 @@ import axios from "axios"
 function Login() {
 	const [username, setUsername] = useState("")
 	const [password, setPassword] = useState("")
+	const [error, setError] = useState("")
 	const history = useHistory()
 	const login = e => {
 		e.preventDefault()
+		if (username === "") {
+			setError("Username not found")
+			return
+		}
+		if (password === "") {
+			setError("Password is incorrect")
+			return
+		}
 		axios
 			.post("http://localhost:5500/user/login", {
 				username,
@@ -14,10 +23,11 @@ function Login() {
 			})
 			.then(res => {
 				localStorage.setItem("userid", res.data.userID)
-				history.push("/join")
+				localStorage.setItem("username", res.data.username)
+				history.push("/join", {name:username})
 			})
 			.catch(err => {
-				console.error(err)
+				setError(err.response.data.message)
 			})
 	}
 	const navigateToSignUp = () => {
@@ -27,6 +37,7 @@ function Login() {
 		<div className='h-screen flex flex-col justify-center items-center'>
 			<h1 className='font-bold text-3xl'>ChitChat</h1>
 			<div className='flex flex-col justify-center gap-4 items-center h-1/3 w-1/3 '>
+				{error ? <p className='italic'>{error}</p> : null}
 				<input
 					value={username}
 					onChange={e => {
@@ -37,6 +48,7 @@ function Login() {
 					required={true}
 					className='p-2 focus:outline-none'
 				/>
+				{/* {error ? <p className='italic'>{error}</p> : null} */}
 				<input
 					value={password}
 					onChange={e => {

@@ -6,6 +6,7 @@ function Signup() {
 	const [password, setPassword] = useState("")
 	const [firstname, setFirstname] = useState("")
 	const [lastname, setLastname] = useState("")
+	const [error, setError] = useState("")
 	const history = useHistory()
 
 	const navigateToLogin = () => {
@@ -15,7 +16,11 @@ function Signup() {
 	const signUp = async () => {
 		console.log("dsfhdsf")
 		if (username.trim() === "") {
-			console.log("Username cannot be empty")
+			setError("Username cannot be empty")
+			return
+		}
+		if (password.trim() === "") {
+			setError("Password cannot be empty")
 			return
 		}
 		try {
@@ -27,14 +32,15 @@ function Signup() {
 			})
 
 			history.push("/")
-		} catch (error) {
-			console.log(error)
+		} catch (err) {
+			setError(err.response.data.message)
 		}
 	}
 	return (
 		<div className='h-screen flex flex-col justify-center items-center'>
 			<div className='flex flex-col justify-center gap-4 items-center h-1/3 w-1/3 '>
 				<h1 className='font-bold text-3xl'>ChitChat</h1>
+				{error ? <p className='italic'>{error}</p> : null}
 				<input
 					value={firstname}
 					onChange={e => {
