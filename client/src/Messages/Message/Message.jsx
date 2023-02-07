@@ -4,7 +4,7 @@ import "./Message.css";
 let isFound;
 function Message({ message, user, name }) {
   let text = message;
-  if (user == name) {
+  if (user === name) {
     return (
       <div className="messageContainer">
         <div className="whiteBg">
@@ -16,7 +16,7 @@ function Message({ message, user, name }) {
   }
   isFound = text.search(/\bchat/);
 
-  if (message == "Welcome to the chat" || isFound > 0) {
+  if (message === "Welcome to the chat" || isFound > 0) {
     return (
       <div className="messageContainer">
         <div className="blueBg">
