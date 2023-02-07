@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { useHistory, useLocation } from "react-router-dom"
 import "./Join.css"
 
@@ -7,6 +7,11 @@ function Join() {
 
 	let history = useHistory()
 	const location = useLocation()
+	useEffect(() => {
+		if (!location.state?.name) {
+			history.push("/")
+		}
+	},[])
 	// console.log(location.state.name)
 	const handleJoin = e => {
 		if (!room) {
