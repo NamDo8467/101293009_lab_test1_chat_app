@@ -15,11 +15,9 @@ const errorHandler = (type, error) => {
 const registerController = async (req, res) => {
 	try {
 		const { firstname, lastname, username, password } = req.body
-		// console.log(username)
 		const user = await User.create({ firstname, lastname, username, password })
 		res.status(201).send({ message: "User has been created successfully" })
 	} catch (error) {
-		console.log(error)
 		let message = errorHandler("register", error)
 		res.status(400).send(message)
 	}
@@ -27,6 +25,7 @@ const registerController = async (req, res) => {
 
 const loginController = async (req, res) => {
 	const { username, password } = req.body
+	// console.log(req.body)
 	try {
 		const user = await User.findOne({ username })
 		if (!user) {
@@ -37,11 +36,11 @@ const loginController = async (req, res) => {
 			throw (new Error().message = "Password is incorrect")
 		} else {
 			// req.session.userid = user.username
-			res.status(200).send({ message: "Logged in", userID: user._id })
+			res.status(200).send({ message: "Logged in", userID: user._id, username: user.username })
 		}
 	} catch (error) {
 		let message = errorHandler("login", error)
-
+		console.log(message)
 		res.status(400).send(message)
 	}
 }
